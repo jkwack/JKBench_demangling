@@ -1,0 +1,25 @@
+FC=ifx
+
+SDIR=./
+SRC=${SDIR}/Messy_code_omp.f90
+
+EXE=Messy_code_omp_${FC}
+FFLAGS=-g -O3 -fiopenmp -fopenmp-targets=spir64 -cpp 
+LDFLAGS=
+
+EXES=$(EXE) 
+
+all: $(EXES)
+
+$(EXE): $(SRC)
+	$(FC) $(FFLAGS) $^ -o $@ $(LDFLAGS)
+	rm -rf *.o *.mod *.dSYM
+
+
+.SUFFIXES:
+.SUFFIXES: .c .o .f90 .cu .cpp .cuf
+.PHONY: clean
+clean:
+	rm -rf *.o *.mod $(EXES) *.dSYM
+
+
