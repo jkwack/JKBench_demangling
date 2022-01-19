@@ -1,5 +1,5 @@
 Messy_code_omp_ifx
-jk_shared.modmic
+*.modmic
 *.swp
 vtune_*
 
