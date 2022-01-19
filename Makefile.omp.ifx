@@ -9,7 +9,7 @@ LDFLAGS=
 
 EXES=$(EXE) 
 
-all: $(EXES)
+all: clean $(EXES)
 
 $(EXE): $(SRC)
 	$(FC) $(FFLAGS) $^ -o $@ $(LDFLAGS)

@@ -26,6 +26,34 @@ module JK_shared
    contains
 
 
+   subroutine use_gpu_task_B(n)
+   !$omp declare target
+      integer,intent(inout)                   :: n
+      integer                                 :: i,j,k
+
+      k = n
+
+      do i=1,n
+        do j=1,i
+           do k=1,n
+              n = n+i+j+k
+           enddo
+        enddo
+      enddo
+
+      do k=1,n
+        do j=1,k
+           do i=1,n
+              n = n-k-i-j
+           enddo
+        enddo
+      enddo
+
+      n = n+1
+   end subroutine use_gpu_task_B
+
+
+
    subroutine alloc_data(this_data,n)
       integer,intent(in)                       :: n
       type(data_type),intent(inout)            :: this_data
@@ -35,6 +63,36 @@ module JK_shared
       allocate(this_data%SP(n));
 
    end subroutine alloc_data
+
+   subroutine use_gpu_task_A(n)
+      integer,intent(in)                       :: n
+      real(kind=8),dimension(:),allocatable    :: A
+      integer                                  :: i,j,k
+
+      allocate(A(n))
+      !$omp target teams distribute parallel do map(to:A)
+         do i=1,n
+            A(i) = i*100.0
+            do j=1,i
+               A(i) = A(i) + j
+            enddo
+         enddo
+      !$omp end target teams distribute parallel do
+
+      k=n
+      !$omp target 
+         call use_gpu_task_B(k)
+      !$omp end target
+
+      !$omp target teams distribute parallel do map(to:A)
+         do i=1,n
+            do j=i,n
+               A(i) = A(i) - j
+            enddo
+         enddo
+      !$omp end target teams distribute parallel do
+
+   end subroutine use_gpu_task_A
 
 
    subroutine init_data(this_data)
@@ -56,6 +114,8 @@ module JK_shared
             enddo
          enddo 
       !$omp end target teams distribute parallel do
+
+      call use_gpu_task_A(n)
 
    end subroutine init_data
 
